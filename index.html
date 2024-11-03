@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto News Aggregator</title>
+    <title>Crypto Hot News Aggregator</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -24,39 +24,94 @@
             max-width: 600px;
             border-radius: 5px;
             border: 1px solid #ddd;
+            cursor: pointer;
+        }
+
+        .news-item:hover {
+            background-color: #e9e9e9;
+        }
+
+        .news-preview {
+            margin-top: 10px;
+            font-size: 1em;
+            color: #555;
+            display: none;
+        }
+
+        .news-link {
+            margin-top: 10px;
+            display: inline-block;
+            color: #0066cc;
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <h1>Latest Crypto News</h1>
-    <div id="news-container">Loading news...</div>
+    <h1>Hot Crypto News</h1>
+    <div id="news-container">Loading hot news...</div>
 
     <script>
-        async function fetchCryptoNews() {
+        async function fetchCryptoHotNews() {
             try {
-                // Example API for fetching crypto news (CryptoCompare API for illustration)
                 const apiUrl = 'https://min-api.cryptocompare.com/data/v2/news/?lang=EN';
                 const response = await fetch(apiUrl);
                 const data = await response.json();
 
-                // Extract and display news in "JUST IN:" format
                 const newsContainer = document.getElementById('news-container');
                 newsContainer.innerHTML = ''; // Clear loading text
 
-                data.Data.slice(0, 10).forEach(news => {  // Limit to 10 latest news items
-                    const newsItem = document.createElement('div');
-                    newsItem.classList.add('news-item');
-                    newsItem.textContent = `JUST IN: ${news.title}`;
-                    newsContainer.appendChild(newsItem);
-                });
+                // Filter for popular sources and news within the last 7 days
+                const popularSources = ["CoinTelegraph", "CryptoSlate", "CoinDesk", "The Block", "Decrypt"];
+                const sevenDaysAgo = new Date();
+                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+                // Get hot news within 7 days from popular sources, limit to 30
+                const hotNews = data.Data.filter(news =>
+                    popularSources.includes(news.source_info.name) &&
+                    new Date(news.published_on * 1000) >= sevenDaysAgo
+                ).slice(0, 30);
+
+                // Display each news item with preview and link
+                if (hotNews.length === 0) {
+                    newsContainer.innerHTML = "No hot news articles found from the past 7 days.";
+                } else {
+                    hotNews.forEach(news => {
+                        const newsItem = document.createElement('div');
+                        newsItem.classList.add('news-item');
+                        newsItem.textContent = `JUST IN: ${news.title} (from ${news.source_info.name})`;
+
+                        // Preview text element
+                        const newsPreview = document.createElement('div');
+                        newsPreview.classList.add('news-preview');
+                        newsPreview.innerHTML = `<p>${news.body || "Preview not available."}</p>`;
+
+                        // Link to full article
+                        const newsLink = document.createElement('a');
+                        newsLink.href = news.url;
+                        newsLink.target = "_blank";
+                        newsLink.classList.add('news-link');
+                        newsLink.textContent = "Read full article";
+
+                        // Toggle preview and link on click
+                        newsItem.addEventListener('click', () => {
+                            const isPreviewVisible = newsPreview.style.display === 'block';
+                            newsPreview.style.display = isPreviewVisible ? 'none' : 'block';
+                            newsLink.style.display = isPreviewVisible ? 'none' : 'inline';
+                        });
+
+                        newsItem.appendChild(newsPreview);
+                        newsItem.appendChild(newsLink);
+                        newsContainer.appendChild(newsItem);
+                    });
+                }
             } catch (error) {
                 console.error("Error fetching news:", error);
                 document.getElementById('news-container').textContent = "Failed to load news. Please try again later.";
             }
         }
 
-        // Call the function to fetch news on page load
-        fetchCryptoNews();
+        // Call the function to fetch hot news on page load
+        fetchCryptoHotNews();
     </script>
 </body>
 </html>
