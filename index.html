@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto News Aggregator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .news-item {
+            font-size: 1.2em;
+            background-color: #f4f4f4;
+            padding: 10px;
+            margin: 10px auto;
+            max-width: 600px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>Latest Crypto News</h1>
+    <div id="news-container">Loading news...</div>
+
+    <script>
+        async function fetchCryptoNews() {
+            try {
+                // Example API for fetching crypto news (CryptoCompare API for illustration)
+                const apiUrl = 'https://min-api.cryptocompare.com/data/v2/news/?lang=EN';
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                // Extract and display news in "JUST IN:" format
+                const newsContainer = document.getElementById('news-container');
+                newsContainer.innerHTML = ''; // Clear loading text
+
+                data.Data.slice(0, 10).forEach(news => {  // Limit to 10 latest news items
+                    const newsItem = document.createElement('div');
+                    newsItem.classList.add('news-item');
+                    newsItem.textContent = `JUST IN: ${news.title}`;
+                    newsContainer.appendChild(newsItem);
+                });
+            } catch (error) {
+                console.error("Error fetching news:", error);
+                document.getElementById('news-container').textContent = "Failed to load news. Please try again later.";
+            }
+        }
+
+        // Call the function to fetch news on page load
+        fetchCryptoNews();
+    </script>
+</body>
+</html>
